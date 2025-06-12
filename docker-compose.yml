@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   patients-db:
     image: mongo:latest
@@ -6,7 +8,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - patients_db_data:/data/db 
+      - patients_db_data:/data/db
     networks:
       - app-network
 
@@ -25,7 +27,7 @@ services:
     depends_on:
       - patients-db
     volumes:
-      - ./services/patients-service/src:/app/src 
+      - ./services/patients-service/src:/app/src
     networks:
       - app-network
     command: npm run dev
@@ -35,7 +37,7 @@ services:
     container_name: symptoms_mongo_db
     restart: unless-stopped
     ports:
-      - "27018:27017" 
+      - "27018:27017"
     volumes:
       - symptoms_db_data:/data/db
     networks:
@@ -53,27 +55,39 @@ services:
       NODE_ENV: development
       MONGO_URI: mongodb://symptoms-db:27017/symptoms_db_docker_compose
       PORT: 3002
-      
     depends_on:
       - symptoms-db
-  
     volumes:
       - ./services/symptoms-service/src:/app/src
     networks:
       - app-network
     command: npm run dev
 
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway_service
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    depends_on:
+      - patients-service
+      - symptoms-service
+
   vue-symptom-app:
     build:
       context: ./client/vue-symptom-app
       dockerfile: Dockerfile
-      
+      args:
+        VITE_API_URL: http://api-gateway:3000
     container_name: vue_symptom_app_client
     ports:
-      - "8080:80" 
+      - "8080:80"
     depends_on:
-      - patients-service
-      - symptoms-service
+      - api-gateway
     networks:
       - app-network
 
@@ -84,5 +98,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-
-#holaaaaaa

@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import PatientsView from '../views/PatientsView.vue'
-import SymptomsView from '../views/SymptomsView.vue' // You need to create this component
+import SymptomsView from '../views/SymptomsView.vue'
 
 const routes = [
   {
@@ -9,7 +9,7 @@ const routes = [
     component: PatientsView
   },
   {
-    path: '/symptoms',
+    path: '/',
     name: 'Symptoms',
     component: SymptomsView
   }

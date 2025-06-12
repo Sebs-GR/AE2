@@ -1,4 +1,3 @@
-// symptom-tracker-monorepo/services/patients-service/src/models/Patient.js
 import mongoose from 'mongoose';
 
 const PatientSchema = new mongoose.Schema({
@@ -38,9 +37,10 @@ const PatientSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+}, {
+  collection: 'patients', // 👈 aquí defines la colección explícitamente
 });
 
-// Middleware to ensure email is saved in lowercase before validating uniqueness
 PatientSchema.pre('save', async function(next) {
   if (this.isModified('email')) {
     this.email = this.email.toLowerCase();
@@ -48,6 +48,4 @@ PatientSchema.pre('save', async function(next) {
   next();
 });
 
-const Patient = mongoose.model('Patient', PatientSchema);
-
-export default Patient;
+export default mongoose.model('Patient', PatientSchema);

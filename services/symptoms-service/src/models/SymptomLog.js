@@ -1,10 +1,9 @@
-// symptom-tracker-monorepo/services/symptoms-service/src/models/SymptomLog.js
 import mongoose from 'mongoose';
 
 const SymptomLogSchema = new mongoose.Schema({
-  patientId: { // Reference to the patient ID in the patients service
-    type: mongoose.Schema.Types.ObjectId, // Or String if you won't use populate directly between services
-    ref: 'Patient', // This is conceptual, existence validation would be at the application level
+  patientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Patient',
     required: [true, 'El ID del paciente es obligatorio'],
   },
   symptomDescription: {
@@ -16,7 +15,7 @@ const SymptomLogSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'La severidad es obligatoria'],
     min: 1,
-    max: 10, // Scale from 1 to 10, for example
+    max: 10,
   },
   notes: {
     type: String,
@@ -26,7 +25,8 @@ const SymptomLogSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+}, {
+  collection: 'symptoms',
 });
 
-const SymptomLog = mongoose.model('SymptomLog', SymptomLogSchema);
-export default SymptomLog;
+export default mongoose.model('SymptomLog', SymptomLogSchema);

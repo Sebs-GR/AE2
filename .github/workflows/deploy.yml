@@ -3,7 +3,7 @@ name: Build and Deploy Microservices to Azure
 on:
   pull_request:
     branches:
-      - main  # Cambia si usas otra rama
+      - main
 
 jobs:
   build-and-deploy:
@@ -22,35 +22,59 @@ jobs:
           username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
           password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
 
+      # Build and Push: Patients Service
       - name: Build and push patients-service
         run: |
-          docker build -t $REGISTRY/patients-service ./symptom-tracker-monorepo/services/patients-service
+          docker build -t $REGISTRY/patients-service ./services/patients-service
           docker push $REGISTRY/patients-service
 
+      # Build and Push: Symptoms Service
       - name: Build and push symptoms-service
         run: |
-          docker build -t $REGISTRY/symptoms-service ./symptom-tracker-monorepo/services/symptoms-service
+          docker build -t $REGISTRY/symptoms-service ./services/symptoms-service
           docker push $REGISTRY/symptoms-service
 
+      # Build and Push: API Gateway
+      - name: Build and push api-gateway
+        run: |
+          docker build -t $REGISTRY/api-gateway ./services/api-gateway
+          docker push $REGISTRY/api-gateway
+
+      # Build and Push: Frontend
       - name: Build and push vue-symptom-app
         run: |
-          docker build --build-arg VITE_PATIENTS_SERVICE_URL=https://patients.example.com \
-                       --build-arg VITE_SYMPTOMS_SERVICE_URL=https://symptoms.example.com \
-                       -t $REGISTRY/vue-symptom-app ./symptom-tracker-monorepo/client/vue-symptom-app
+          docker build --build-arg VITE_API_URL=gateway-api-ahd6acgnaqa3gsby.canadacentral-01.azurewebsites.net/api \
+                       -t $REGISTRY/vue-symptom-app ./client/vue-symptom-app
           docker push $REGISTRY/vue-symptom-app
 
+      # Azure Login
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Deploy: Patients Service
       - name: Deploy to Azure Web App (patients-service)
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME_PATIENTS }}
           images: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/patients-service
 
+      # Deploy: Symptoms Service
       - name: Deploy to Azure Web App (symptoms-service)
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME_SYMPTOMS }}
           images: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/symptoms-service
 
+      # Deploy: API Gateway
+      - name: Deploy to Azure Web App (api-gateway)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME_GATEWAY }}
+          images: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/api-gateway
+
+      # Deploy: Frontend
       - name: Deploy to Azure Web App (vue-symptom-app)
         uses: azure/webapps-deploy@v2
         with:
